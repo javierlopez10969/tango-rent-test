@@ -24,11 +24,16 @@ def findRent():
     soup = BeautifulSoup(rent, "html.parser")
     rent = soup.findAll()[1].text
     return rent
-def turnPage(number):
-    pages = driver.find_elements(By.CLASS_NAME,"MuiButtonBase-root.MuiPaginationItem-root")
-    driver.implicitly_wait(1)
-    pages[number].click()
-    driver.implicitly_wait(1)
+def turnPage(driver,page):
+    #bajar al fondo de la pagina
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    nextPage = driver.find_element(By.CSS_SELECTOR,"[aria-label='Go to next page']")
+    iterator = 1
+    while (iterator < page):
+        driver.implicitly_wait(10)
+        nextPage.click()
+        iterator = iterator + 1
+    driver.execute_script("window.scrollTo(document.body.scrollHeight,0);")
 def writeExcel(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, pets, areas, orientations):
     columns= ['Dirección','Valor de arriendo','Dormitorios','Estacionamientos','Gastos comunes','URL 1º foto',\
         '¿Acepta mascotas?','Superficie total','Orientación']
@@ -66,17 +71,22 @@ page = 1
 while (index < len(elementsAux)):
     driver.implicitly_wait(10)
     elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
-    time.sleep(0.2)
-
-    if (index>5):
+    # Si la pagina es distinto de 1
+    if (page != 1):
+        print("Page: " + str(page))
+        turnPage(driver,page)
+    if (index>4):
+        driver.implicitly_wait(10)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    driver.implicitly_wait(10)
     print("Index: " + str(index))
     print("Page: " + str(page))
     print("Elements: " + str(len(elementsAux)))
     e = elementsAux[index]
     driver.implicitly_wait(10)
-    e.click()
+    try:
+        e.click()
+    except:
+        break
     #Direccion
     
     address = findAddress(driver)
@@ -92,7 +102,7 @@ while (index < len(elementsAux)):
     info = driver.find_element(By.CLASS_NAME,"info")
     driver.implicitly_wait(1)
     elements = info.find_elements(By.CLASS_NAME,"img-detail")
-    i = 0
+
     bedroom = elements[0].text
     print(bedroom)
     bedrooms.append(bedroom)
@@ -104,7 +114,6 @@ while (index < len(elementsAux)):
 
     #Superficie total/
     areasAux =info.find_elements(By.XPATH,"//*[contains(text(), 'm²')]")
-    jotito =0 
     a1 = int(areasAux[0].text.split(" ")[0])
     a2 = int(areasAux[1].text.split(" ")[0])
     totalArea = a1 + a2
@@ -137,7 +146,7 @@ while (index < len(elementsAux)):
     element = driver.find_element(By.CLASS_NAME,"MuiPaper-root.MuiAccordion-root.MuiAccordion-rounded.MuiPaper-elevation1.MuiPaper-rounded")
     driver.implicitly_wait(4)
     element.click()
-    time.sleep(0.1)
+    time.sleep(0.3)
     #Find orientacion
     orientacion = element.find_elements(By.XPATH,"//*[contains(text(), 'Orientación')]") 
     orientacion = orientacion[0].text
@@ -146,13 +155,9 @@ while (index < len(elementsAux)):
     index +=1
     driver.back()
     if (index == len(elementsAux)):
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        nextPages = driver.find_element(By.CSS_SELECTOR,"[aria-label='Go to next page']")
-        driver.implicitly_wait(10)
-        #nextPages.click()
-        #index = 0
+        index = 0
         page +=1
-        driver.execute_script("window.scrollTo(document.body.scrollHeight,0);")
+
 
 driver.close()
 
