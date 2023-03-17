@@ -27,13 +27,15 @@ def findRent():
 def turnPage(driver,page):
     #bajar al fondo de la pagina
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    nextPage = driver.find_element(By.CSS_SELECTOR,"[aria-label='Go to next page']")
+    #Click en siguiente pagina
+    nextPage = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR,"[aria-label='Go to next page']")))
     iterator = 1
     while (iterator < page):
         driver.implicitly_wait(10)
         nextPage.click()
         iterator = iterator + 1
     driver.execute_script("window.scrollTo(document.body.scrollHeight,0);")
+    return True
 def writeExcel(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, pets, areas, orientations):
     columns= ['Dirección','Valor de arriendo','Dormitorios','Estacionamientos','Gastos comunes','URL 1º foto',\
         '¿Acepta mascotas?','Superficie total','Orientación']
@@ -65,22 +67,25 @@ orientations = []
 
 driver.implicitly_wait(10)
 elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
-
+n = len(elementsAux)
+nMax = n
+nMin = n
 index = 0
 page = 1
-while (index < len(elementsAux)):
-    driver.implicitly_wait(10)
-    elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
+while (index < n):
     # Si la pagina es distinto de 1
     if (page != 1):
         print("Page: " + str(page))
         turnPage(driver,page)
+        driver.implicitly_wait(10)
     if (index>4):
         driver.implicitly_wait(10)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    driver.implicitly_wait(10)
+    elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
     print("Index: " + str(index))
     print("Page: " + str(page))
-    print("Elements: " + str(len(elementsAux)))
+    print("Elements: " + str(n))
     e = elementsAux[index]
     driver.implicitly_wait(10)
     try:
@@ -154,9 +159,19 @@ while (index < len(elementsAux)):
     orientations.append(orientacion)
     index +=1
     driver.back()
-    if (index == len(elementsAux)):
+    if (index == n):
+        if (nMin != nMax):
+            break
         index = 0
         page +=1
+        turnPage(driver,page)
+        driver.implicitly_wait(10)
+        elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
+        n = len(elementsAux)
+        if (n < nMin):
+            nMin = n
+        driver.implicitly_wait(10)
+        driver.get(url)
 
 
 driver.close()
