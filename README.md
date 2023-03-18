@@ -17,7 +17,7 @@ Para levantar la vista usted tendrá que ubicarse en la carpeta llamada frontend
 ### `npm install`
 ### Compilar y ejecutar la vista en el puerto local 8080
 ### `npm run dev`
-
+# Backend :computer:
 ### Requisitos backend
 
 * Python 3
@@ -25,6 +25,8 @@ Para levantar la vista usted tendrá que ubicarse en la carpeta llamada frontend
 * Numpy
 * Pandas
 * bs4
+* openpyxl
+* xlsxwriter
 * Google Chrome
 * Chrome driver
 
@@ -36,8 +38,14 @@ A su vez tendrá que editar la línea que tiene la ruta del driver de chrome:
 
 Tambien tendrá que tener instaladas las bibliotecas indicadas mediante pip install. O el siguiente comando :
 
-### `pip install selenium numpy pandas bs4`
+### `pip install selenium numpy pandas bs4 openpyxl xlsxwriter`
 
 Una vez configurada las librerías y el driver de chrome, podra ejecutar el scrapper de python mediante : 
 
-### `python3 main.py`
+### `python3 scrapper.py`
+
+# Notas sobre el backend
+
+El backend utiliza código multiprocesos, por lo cual utuliza múltiples ventanas de chrone a la  vez, con un máximo de 3 ventanas al mismo tiempo. 
+
+Tambien se implemento un backend de forma procecural imperativa con una sola ventana abierta, pero ese backend se demora aproximadamente 706 segundos (11 minutos). En cambio el backend multiprocesos se demora con 3 ventanas abiertas al mismo tiempo, al al rededor de 446 segundos, y con 4 ventanas abiertas 382 segundos, sin embargo debido a la potencia del equipo utilizado, cuando se utiliza las 4 ventanas a veces no se completa cada proceso, dedbido al uso excesivo de CPU y el programa falla, por lo cual se ha dejado en un máximo de 3 multi procesos, ya que asi se asegura al menos que se va a completar la operacion, aunque se demore 1 minuto más. 
