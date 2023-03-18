@@ -1,3 +1,6 @@
+
+import multiprocessing
+from selenium import webdriver
 #Libraries
 import os
 from selenium import webdriver
@@ -17,6 +20,7 @@ def findAddress(driver):
     soup = BeautifulSoup(address, "html.parser")
     address = soup.findAll()[1].text
     return address
+
 def findRent():
     rent = driver.find_element(By.ID,"price-month")
     driver.implicitly_wait(1)
@@ -67,7 +71,32 @@ def writeExcel(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, p
     print(df)
     # Write DataFrame to Excel file
     df.to_excel('Output.xlsx')    
-start = time.time()
+def scrape(url,index,page):
+    driver = webdriver.Chrome()
+    print("Index = " + str(index))
+    driver.maximize_window()
+    driver.implicitly_wait(10)
+    driver.get(url)
+    driver.implicitly_wait(10)
+    if (page != 1):
+        print("Page: " + str(page))
+        turnPage(driver,page)
+        driver.implicitly_wait(10)
+    #driver.implicitly_wait(10)
+    #elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
+    elementsAux = WebDriverWait(driver, 120).until(EC.presence_of_all_elements_located((By.CLASS_NAME,"carousel-card-a")))
+    driver.implicitly_wait(10)
+    element = elementsAux[index]
+    if (index>=4):
+        driver.implicitly_wait(10)
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+    element.click()
+    driver.implicitly_wait(10)    
+    address = findAddress(driver)
+    print(address)
+    driver.close()
+    # do something with the page source
+
 # os.environ['PATH'] += r"C:\Users\user\Downloads\chromedriver_win32\chromedriver.exe"
 # Chrome driver executable path
 os.environ['PATH'] += r"C:/home/javierlopez/Documentos/fullstack-test-tango/backend/"
@@ -89,110 +118,17 @@ orientations = []
 
 pages = calculatePagination(driver) 
 driver.implicitly_wait(10)
-elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
-n = len(elementsAux)
-index = 0
-page = 1
-while (index < n and page <= pages):
-    # Si la pagina es distinto de 1
-    if (page != 1):
-        print("Page: " + str(page))
-        turnPage(driver,page)
-        driver.implicitly_wait(10)
-    if (index>4):
-        driver.implicitly_wait(10)
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    driver.implicitly_wait(10)
-    elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
-    print("Index: " + str(index))
-    print("Page: " + str(page))
-    print("Elements: " + str(n))
-    e = elementsAux[index]
-    driver.implicitly_wait(10)
-    try:
-        e.click()
-    except:
-        break
-    #Direccion
-    
-    address = findAddress(driver)
-    print(address)
-    addresses.append(address)
-
-    #Valor de arriendo
-    rent = findRent()
-    print(rent)
-    rents.append(rent)
-
-    #Dormitorios
-    info = driver.find_element(By.CLASS_NAME,"info")
-    driver.implicitly_wait(1)
-    elements = info.find_elements(By.CLASS_NAME,"img-detail")
-
-    bedroom = elements[0].text
-    print(bedroom)
-    bedrooms.append(bedroom)
-
-    #Estacionamientos
-    parking = elements[4].text
-    print(parking)
-    parkings.append(parking)
-
-    #Superficie total/
-    areasAux =info.find_elements(By.XPATH,"//*[contains(text(), 'm²')]")
-    a1 = int(areasAux[0].text.split(" ")[0])
-    a2 = int(areasAux[1].text.split(" ")[0])
-    totalArea = a1 + a2
-    area = str(totalArea) + " m2"
-    print(area) 
-    areas.append(area)
-
-    #Gastos comunes
-    elements = driver.find_elements(By.TAG_NAME,"span")
-    driver.implicitly_wait(1)
-    gastoComun = elements[5].text
-    print("Gastos comunes: " + gastoComun)
-    gastosComunes.append(gastoComun)
-
-    #¿Acepta mascotas?
-    pet = elements[7].text
-    print("¿Acepta mascotas? " + pet)
-    pets.append(pet)
-
-    #URL 1º foto
-    imageContainer= driver.find_element(By.CLASS_NAME,"images")
-    images = imageContainer.find_elements(By.TAG_NAME,"img")
-    driver.implicitly_wait(1)
-    urlImage = images[0].get_attribute("src")
-    print(urlImage)
-    urlImages.append(urlImage)
-
-    #Orientación
-    #Find detalle propiedad
-    element = driver.find_element(By.CLASS_NAME,"MuiPaper-root.MuiAccordion-root.MuiAccordion-rounded.MuiPaper-elevation1.MuiPaper-rounded")
-    driver.implicitly_wait(4)
-    element.click()
-    time.sleep(0.3)
-    #Find orientacion
-    orientacion = element.find_elements(By.XPATH,"//*[contains(text(), 'Orientación')]") 
-    orientacion = orientacion[0].text
-    print("Orientación: " + orientacion)
-    orientations.append(orientacion)
-    index +=1
-    driver.back()
-    if (index == n):
-        index = 0
-        page +=1
-        turnPage(driver,page)
-        driver.implicitly_wait(10)
-        elementsAux = driver.find_elements(By.CLASS_NAME,"carousel-card-a")
-        n = len(elementsAux)
-        driver.implicitly_wait(10)
-        driver.get(url)
-
 driver.close()
+  
 
-writeExcel(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, pets, areas, orientations )
-
-end = time.time()
-print("Tiempo de ejecución: " + str(end - start))
+processes = []
+i = 0
+elementMaxSize = 3
+while i < 3:
+    processes = []
+    p = multiprocessing.Process(target=scrape, args=(url,2,i))
+    p.start()
+    processes.append(p)
+    i +=1
+for p in processes:
+    p.join()
