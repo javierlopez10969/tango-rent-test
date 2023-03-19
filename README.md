@@ -29,7 +29,7 @@ Para levantar la vista usted tendrá que ubicarse en la carpeta llamada frontend
 
 Para levantar el backend usted tendrá que ubicarse en la carpeta llamada backend. Tener instalado Google Chrome, y tener descargado su respectivo chrome driver ejecutable para su correspondiente sistema operativo y versión de google Chrome, y este ejecutable ubicarlo en la la misma carpeta. 
 
-A su vez tendrá que editar la línea que tiene la ruta del driver de chrome: 
+A su vez tendrá que editar la línea 194 que tiene la ruta del driver de chrome: 
 
 ### `os.environ['PATH'] += r"C:/home/javierlopez/Documentos/fullstack-test-tango/backend/"`
 
