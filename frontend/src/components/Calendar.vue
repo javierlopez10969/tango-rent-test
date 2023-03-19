@@ -36,10 +36,10 @@
       <div
         v-for="date in dates"
         :key="date.id"
-        class="event calendar1"
         :style="date.style"
+        class="event"
       >
-      {{ date.startTime }} - {{ date.enddTime }} {{ date.name }} 
+        {{ date.startTime }} - {{ date.enddTime }} {{ date.name }}
       </div>
       <div class="current-time" :style="styleTime">
         <div class="circle"></div>
@@ -136,27 +136,35 @@ export default {
         const perTop = (startMinute * 100) / 60;
         //Calculate the duration of the event
         var diffMinute = endMinute - startMinute;
-        if (diffHour == 0) {    
+        var colorStyle = ["#49aeab", "#d7dbef"];
+        var color = startHour % 3 == 0 ? colorStyle[0] : colorStyle[1];
+        if (diffHour == 0) {
           var perHeight = (diffMinute * 100) / 60;
           element.style = `grid-column: ${day}; 
                           height: calc(${perHeight}% );
                           grid-row: ${startHour}; 
-                          top: calc(${perTop}% );`;
+                          top: calc(${perTop}% );
+                          background-color: ${color};
+                          border-color: ${color};
+                          `;
           return;
         }
         if (diffHour == 1 && diffMinute == 0) {
           var perHeight = 100;
-        } 
+        }
         if (diffHour == 1 && diffMinute < 0) {
           diffMinute = startMinute - endMinute;
           var perHeight = (diffMinute * 100) / 60;
         }
-          
+
         element.style = `
             grid-column: ${day};
             grid-row: ${startHour} / span ${diffHour};
             height: calc(${perHeight}% );            
             top: calc(${perTop}% );
+            background-color: ${color};
+            border-color: ${color};
+            ;
             `;
       });
     },
@@ -262,7 +270,6 @@ body {
 
 .event {
   border-radius: 5px;
-
   margin-right: 10px;
   font-weight: bold;
   font-size: 60%;

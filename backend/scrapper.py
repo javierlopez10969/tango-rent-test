@@ -7,10 +7,8 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 import time
 import pandas as pd
-import numpy as np
 from bs4 import BeautifulSoup
 
 def findAddress(driver):
@@ -26,6 +24,7 @@ def findRent(driver):
     soup = BeautifulSoup(rent, "html.parser")
     rent = soup.findAll()[1].text
     return rent
+
 # Funcion para cambiar de pagina
 # Parametros:
 # driver: driver de selenium
@@ -33,7 +32,6 @@ def findRent(driver):
 def turnPage(driver,page):
     #bajar al fondo de la pagina
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    #Click en siguiente pagina
     nextPage = WebDriverWait(driver, 700).until(EC.presence_of_element_located((By.CSS_SELECTOR,"[aria-label='Go to next page']")))
     iterator = 1
     while (iterator < page and nextPage.is_enabled()):
@@ -42,13 +40,13 @@ def turnPage(driver,page):
         iterator = iterator + 1
     driver.execute_script("window.scrollTo(document.body.scrollHeight,0);")
     return True
+
 # Funcion para calcular la cantidad de paginas
 # Parametros:
 # driver: driver de selenium   
 def calculatePagination(driver):
     #bajar al fondo de la pagina
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-    #Click en siguiente pagina
     nextPage = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR,"[aria-label='Go to next page']")))
     driver.implicitly_wait(10)
     counter = 1
@@ -66,16 +64,16 @@ def writeExcel(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, p
     # Write DataFrame to Excel file
     df.to_excel(nameOutputFile, index=False)   
 def combineExcel(nameOutputFile,maxProcesses,pagination):
-    writer = pd.ExcelWriter(nameOutputFile, engine='xlsxwriter')
+    df = pd.DataFrame()
     for i in range(1,pages+1,pagination):
         print("Procesando desde la página " + str(i) + " hasta la página " + str(i+pagination-1))
         name = "output"+str(i)+".xlsx"
-        df = pd.read_excel(name)
-        df.to_excel(writer, sheet_name='Sheet'+str(i), index=False)
+        df1 = pd.read_excel(name)
+        df = df.append(df1, ignore_index=True)
         os.remove(name)
- 
-    writer.save() 
-
+    
+        
+    df.to_excel(nameOutputFile, index=False)
 def scrape(url,pageMin,pageMax,maximumPages):
     index = 0     
     driver = webdriver.Chrome()
