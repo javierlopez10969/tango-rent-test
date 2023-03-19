@@ -7,12 +7,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'Prueba Frontend',
-      component: HomeView
-    },
-    {
-      path: '/calendar',
-      name: 'calendar',
-      component: () => import('../components/NewCalendar.vue')
+      component: () => import('../components/Calendar.vue')
     },
     {
       path: '/calendarCSS',
