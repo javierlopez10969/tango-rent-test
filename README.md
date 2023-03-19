@@ -38,6 +38,8 @@ Tambien tendrá que tener instaladas las bibliotecas indicadas mediante pip inst
 
 ### `pip install selenium pandas bs4 openpyxl`
 
+### `pip install -r requirements.txt`
+
 Una vez configurada las librerías y el driver de chrome, podra ejecutar el scrapper de python mediante : 
 
 ### `python3 scrapper.py`
