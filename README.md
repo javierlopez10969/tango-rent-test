@@ -22,6 +22,7 @@ Para levantar la vista usted tendrá que ubicarse en la carpeta llamada frontend
 
 * Python 3
 * Selenium
+* pandas
 * bs4
 * openpyxl
 * Google Chrome
