@@ -57,17 +57,18 @@ def calculatePagination(driver):
         nextPage.click()
         driver.implicitly_wait(10)
     return counter
-def writeExcel(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, pets, areas, orientations, nameOutputFile):
+def writeExcel(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, pets, areas, orientations,nameOutputFile):
     columns= ['Dirección','Valor de arriendo','Dormitorios','Estacionamientos','Gastos comunes','URL 1º foto',\
-        '¿Acepta mascotas?','Superficie total','Orientación']
+        '¿Acepta mascotas?','Superficie total','Orientación',]
     # Create DataFrame from multiple lists
     df = pd.DataFrame(list(zip(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, pets, areas, orientations)), columns=columns)
     print(df)
     # Write DataFrame to Excel file
     df.to_excel(nameOutputFile, index=False)   
-def combineExcel(nameOutputFile,pages):
+def combineExcel(nameOutputFile,maxProcesses,pagination):
     writer = pd.ExcelWriter(nameOutputFile, engine='xlsxwriter')
-    for i in range(1,pages+1):
+    for i in range(1,pages+1,pagination):
+        print("Procesando desde la página " + str(i) + " hasta la página " + str(i+pagination-1))
         name = "output"+str(i)+".xlsx"
         df = pd.read_excel(name)
         df.to_excel(writer, sheet_name='Sheet'+str(i), index=False)
@@ -75,16 +76,16 @@ def combineExcel(nameOutputFile,pages):
  
     writer.save() 
 
-def scrape(url,page,):
-    index = 0 
-    outputs = []
+def scrape(url,pageMin,pageMax,maximumPages):
+    index = 0     
     driver = webdriver.Chrome()
     driver.maximize_window()
     driver.implicitly_wait(10)
     driver.get(url)
     driver.implicitly_wait(10)
-    if (page != 1):
-        turnPage(driver,page)
+    #First page
+    if (pageMin != 1):
+        turnPage(driver,pageMin)
         driver.implicitly_wait(10)
     wait = 900
     elementsAux = WebDriverWait(driver, wait).until(EC.presence_of_all_elements_located((By.CLASS_NAME,"carousel-card-a")))
@@ -98,9 +99,11 @@ def scrape(url,page,):
     pets = []
     areas = []
     orientations = []
-    
-    while index != n:        
-        if (page != 1):
+    pages = []
+    indexes = []
+    page = pageMin
+    while index != n and page <= pageMax and page <= maximumPages:        
+        if (page != 1 and index != 0):
             turnPage(driver,page)
             driver.implicitly_wait(10) 
         if (index>=3):
@@ -164,16 +167,25 @@ def scrape(url,page,):
         pets.append(pet)
         areas.append(totalArea)
         orientations.append(orientacion)
+        pages.append(page)
+        indexes.append(index)
 
-        output = "Indexඞ"+ str(index) + ":Pageඞ" + str(page) + "ඞAddressඞ"+address + "ඞRentඞ" + rent + "ඞDormitoriosඞ"+bedroom
+        output = "Indexඞ"+ str(index) + "ඞPageඞ" + str(page) + "ඞAddressඞ"+address + "ඞRentඞ" + rent + "ඞDormitoriosඞ"+bedroom
         output += "ඞEstacionamientosඞ" + parking + "ඞGastos comunesඞ" + gastoComun + "ඞURL 1º fotoඞ" + urlImage + "ඞ¿Acepta mascotas?ඞ" + pet 
         output += "ඞSuperficie totalඞ" + str(totalArea) + "ඞOrientaciónඞ" + orientacion
         #split by ඞ
         print(output.split("ඞ"))
         index += 1
         driver.back()
+        if (index == n):
+            index = 0
+            page += 1
+            turnPage(driver,page)
+            driver.implicitly_wait(10)
+            elementsAux = WebDriverWait(driver, wait).until(EC.presence_of_all_elements_located((By.CLASS_NAME,"carousel-card-a")))
+            n = len(elementsAux)    
     driver.close()
-    nameOutput = "output" + str(page) + ".xlsx"
+    nameOutput = "output" + str(pageMin) + ".xlsx"
     writeExcel(addresses, rents, bedrooms, parkings, gastosComunes, urlImages, pets, areas, orientations, nameOutput)
 
     return True
@@ -191,22 +203,25 @@ driver.get(url)
 driver.implicitly_wait(10)
 pages = calculatePagination(driver) 
 driver.close()
-  
 
 processes = []
 i = 1
-maxProcesses = 4
-while i <= pages:
-    while i < maxProcesses and i <= pages:
-        p = multiprocessing.Process(target=scrape, args=(url,i))
-        p.start()
-        processes.append(p)
-        i +=1
-    for p in processes:
-        p.join()
-    processes = []
-    maxProcesses += 3
-combineExcel("output.xlsx",pages)
+maxProcesses = 3
+
+if(pages % maxProcesses == 0):
+    pagination = pages// maxProcesses
+else:
+    pagination = pages//maxProcesses + pages%maxProcesses
+
+for i in range(1,pages+1,pagination):
+    print("Procesando desde la página " + str(i) + " hasta la página " + str(i+pagination-1))
+    p = multiprocessing.Process(target=scrape, args=(url,i,i+pagination-1,pages))
+    p.start()
+    processes.append(p)
+for p in processes:
+    p.join()
+
+combineExcel("output.xlsx",maxProcesses,pagination)
 end = time.time()
 diff = end - start
 print("Tiempo de ejecución : " + str(diff) + " segundos")
