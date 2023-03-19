@@ -22,11 +22,8 @@ Para levantar la vista usted tendrá que ubicarse en la carpeta llamada frontend
 
 * Python 3
 * Selenium
-* Numpy
-* Pandas
 * bs4
 * openpyxl
-* xlsxwriter
 * Google Chrome
 * Chrome driver
 
@@ -38,7 +35,7 @@ A su vez tendrá que editar la línea que tiene la ruta del driver de chrome:
 
 Tambien tendrá que tener instaladas las bibliotecas indicadas mediante pip install. O el siguiente comando :
 
-### `pip install selenium numpy pandas bs4 openpyxl xlsxwriter`
+### `pip install selenium pandas bs4 openpyxl`
 
 Una vez configurada las librerías y el driver de chrome, podra ejecutar el scrapper de python mediante : 
 
@@ -48,4 +45,6 @@ Una vez configurada las librerías y el driver de chrome, podra ejecutar el scra
 
 El backend utiliza código multiprocesos, por lo cual utuliza múltiples ventanas de chrone a la  vez, con un máximo de 3 ventanas al mismo tiempo. 
 
-Tambien se implemento un backend de forma procecural imperativa con una sola ventana abierta, pero ese backend se demora aproximadamente 706 segundos (11 minutos). En cambio el backend multiprocesos se demora con 3 ventanas abiertas al mismo tiempo, al al rededor de 446 segundos, y con 4 ventanas abiertas 382 segundos, sin embargo debido a la potencia del equipo utilizado, cuando se utiliza las 4 ventanas a veces no se completa cada proceso, dedbido al uso excesivo de CPU y el programa falla, por lo cual se ha dejado en un máximo de 3 multi procesos, ya que asi se asegura al menos que se va a completar la operacion, aunque se demore 1 minuto más. 
+Tambien se implemento un backend de forma procecural imperativa con una sola ventana abierta, pero ese backend se demora aproximadamente 706 segundos (11 minutos). En cambio el backend multiprocesos se demora con 3 ventanas abiertas al mismo tiempo, al al rededor de 406.146 segundos, y con 4 ventanas abiertas 382 segundos, sin embargo debido a la potencia del equipo utilizado, cuando se utiliza las 4 ventanas a veces no se completa cada proceso, dedbido al uso excesivo de CPU y el programa falla, por lo cual se ha dejado en un máximo de 3 multi procesos, ya que asi se asegura al menos que se va a completar la operacion, aunque se demore 30 segundos más.
+
+Procurar usar el backend solo con la consola abierta y no otras ventanas de navegador abierta, para no utilitzar más recursos, y que el backend se encuentre optimizado. En caso de fallar, se debe a que la página se demoro mucho en cargar, por favor intentar hasta que recopile los datos, en caso de que no funciones, se encuentra en la carpeta del backen, un archivo output.xlsx con la salida utilizada en este computador.
